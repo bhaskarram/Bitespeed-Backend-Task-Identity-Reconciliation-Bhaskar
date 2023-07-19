@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.ContactDto;
+import com.example.demo.dto.ContactResponseDto;
 import com.example.demo.dto.ContactRequestDto;
 import com.example.demo.service.ContactService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class ContactController {
     }
 
     @PostMapping
-    public ResponseEntity<ContactDto> createUser(@RequestBody ContactRequestDto contactRequestDto){
+    public ResponseEntity<ContactResponseDto> createUser(@RequestBody ContactRequestDto contactRequestDto){
         return new ResponseEntity<>(contactService.createContact(contactRequestDto), HttpStatus.OK);
     }
 }

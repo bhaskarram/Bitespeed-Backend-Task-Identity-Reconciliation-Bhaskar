@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.ContactDto;
+import com.example.demo.dto.ContactResponseDto;
 import com.example.demo.dto.ContactRequestDto;
 import com.example.demo.model.Contact;
 import com.example.demo.repository.ContactRepository;
@@ -26,12 +26,12 @@ public class ContactServiceImpl implements ContactService {
 
     @Transactional
     @Override
-    public ContactDto createContact(ContactRequestDto contactRequestDto) {
+    public ContactResponseDto createContact(ContactRequestDto contactRequestDto) {
 
         List<Contact> existingContact = findExistingContact(contactRequestDto);
         List<Contact> contactList= contactRepository.findByPhoneNumber(contactRequestDto.getPhoneNumber());
-
-      if(!existingContact.isEmpty()){
+        
+        if(!existingContact.isEmpty()){
           Contact contact = new Contact();
           contact.setPhoneNumber(contactRequestDto.getPhoneNumber());
           contact.setEmail(contactRequestDto.getEmail());
@@ -42,22 +42,22 @@ public class ContactServiceImpl implements ContactService {
           Contact newContacts = contactRepository.save(contact);
 
 
-          ContactDto contactResponse = new ContactDto();
+          ContactResponseDto contactResponse = new ContactResponseDto();
           contactResponse.setPrimaryContatctId(newContacts.getId());
 
           Set<String> emails = new HashSet<>();
           emails.add(newContacts.getEmail());
 
-          for (int i = 0;i<contactList.size();i++){
-              emails.add(contactList.get(i).getEmail());
+          for (Contact value : contactList) {
+              emails.add(value.getEmail());
           }
 
           contactResponse.setEmails(emails);
 
           Set<String> numbers = new HashSet<>();
           numbers.add(newContacts.getPhoneNumber());
-          for (int i = 0;i<contactList.size();i++){
-              numbers.add(contactList.get(0).getPhoneNumber());
+          for (Contact value : contactList) {
+              numbers.add(value.getPhoneNumber());
           }
 
           contactResponse.setPhoneNumbers(numbers);
@@ -75,7 +75,7 @@ public class ContactServiceImpl implements ContactService {
 
           Contact newContacts = contactRepository.save(contact);
 
-          ContactDto contactResponse = new ContactDto();
+          ContactResponseDto contactResponse = new ContactResponseDto();
           contactResponse.setPrimaryContatctId(newContacts.getId());
           contactResponse.setEmails(Collections.singleton(newContacts.getEmail()));
           contactResponse.setPhoneNumbers(Collections.singleton(newContacts.getPhoneNumber()));
