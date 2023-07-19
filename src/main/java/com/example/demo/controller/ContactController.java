@@ -23,7 +23,7 @@ public class ContactController {
     }
 
     @PostMapping
-    public ResponseEntity<ContactDto> craeteUser(@RequestBody ContactRequestDto contactRequestDto){
+    public ResponseEntity<ContactDto> createUser(@RequestBody ContactRequestDto contactRequestDto){
         return new ResponseEntity<>(contactService.createContact(contactRequestDto), HttpStatus.OK);
     }
 }

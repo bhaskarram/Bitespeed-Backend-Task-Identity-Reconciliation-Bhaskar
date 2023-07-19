@@ -2,10 +2,13 @@ package com.example.demo.dto;
 
 import lombok.Data;
 
+import java.util.List;
+import java.util.Set;
+
 @Data
 public class ContactDto {
     private int primaryContatctId;
-    private String phoneNumbers;
-    private String emails;
-    private String secondaryContactIds;
+    private Set<String> emails;
+    private Set<String> phoneNumbers;
+    private List<Integer> secondaryContactIds;
 }

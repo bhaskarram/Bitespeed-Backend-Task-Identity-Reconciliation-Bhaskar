@@ -5,10 +5,12 @@ import com.example.demo.dto.ContactRequestDto;
 import com.example.demo.model.Contact;
 import com.example.demo.repository.ContactRepository;
 import com.example.demo.service.ContactService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 public class ContactServiceImpl implements ContactService {
@@ -20,25 +22,74 @@ public class ContactServiceImpl implements ContactService {
         this.contactRepository = contactRepository;
     }
 
+
+
+    @Transactional
     @Override
     public ContactDto createContact(ContactRequestDto contactRequestDto) {
 
-        //Convert DTO to entity
-        Contact contact = new Contact();
-        contact.setPhoneNumber(contactRequestDto.getPhoneNumber());
-        contact.setEmail(contactRequestDto.getEmail());
-        contact.setCreatedAt(LocalDateTime.now());
-        contact.setUpdatedAt(LocalDateTime.now());
-        contact.setLinkPrecedence("Primary");
+        List<Contact> existingContact = findExistingContact(contactRequestDto);
+        List<Contact> contactList= contactRepository.findByPhoneNumber(contactRequestDto.getPhoneNumber());
 
-        Contact newContact = contactRepository.save(contact);
+      if(!existingContact.isEmpty()){
+          Contact contact = new Contact();
+          contact.setPhoneNumber(contactRequestDto.getPhoneNumber());
+          contact.setEmail(contactRequestDto.getEmail());
+          contact.setUpdatedAt(LocalDateTime.now());
+          contact.setLinkedId(contactList.get(0).getId());
+          contact.setLinkPrecedence("Secondary");
 
-        //Convert entity to DTO
+          Contact newContacts = contactRepository.save(contact);
 
-        ContactDto contactResponse = new ContactDto();
-        contactResponse.setPrimaryContatctId(newContact.getId());
-        contactResponse.setEmails(newContact.getEmail());
-        contactResponse.setPhoneNumbers(newContact.getPhoneNumber());
-        return contactResponse;
+
+          ContactDto contactResponse = new ContactDto();
+          contactResponse.setPrimaryContatctId(newContacts.getId());
+
+          Set<String> emails = new HashSet<>();
+          emails.add(newContacts.getEmail());
+
+          for (int i = 0;i<contactList.size();i++){
+              emails.add(contactList.get(i).getEmail());
+          }
+
+          contactResponse.setEmails(emails);
+
+          Set<String> numbers = new HashSet<>();
+          numbers.add(newContacts.getPhoneNumber());
+          for (int i = 0;i<contactList.size();i++){
+              numbers.add(contactList.get(0).getPhoneNumber());
+          }
+
+          contactResponse.setPhoneNumbers(numbers);
+
+          contactResponse.setSecondaryContactIds(Collections.singletonList(contactList.get(0).getId()));
+          return contactResponse;
+        }
+      else {
+          Contact contact = new Contact();
+          contact.setPhoneNumber(contactRequestDto.getPhoneNumber());
+          contact.setEmail(contactRequestDto.getEmail());
+          contact.setCreatedAt(LocalDateTime.now());
+          contact.setUpdatedAt(LocalDateTime.now());
+          contact.setLinkPrecedence("Primary");
+
+          Contact newContacts = contactRepository.save(contact);
+
+          ContactDto contactResponse = new ContactDto();
+          contactResponse.setPrimaryContatctId(newContacts.getId());
+          contactResponse.setEmails(Collections.singleton(newContacts.getEmail()));
+          contactResponse.setPhoneNumbers(Collections.singleton(newContacts.getPhoneNumber()));
+          return contactResponse;
+      }
+    }
+
+   //Find the existing phoneNo and email
+    private List<Contact> findExistingContact(ContactRequestDto newContact) {
+        if (newContact.getPhoneNumber() != null) {
+            return contactRepository.findByPhoneNumber(newContact.getPhoneNumber());
+        } else if (newContact.getEmail() != null) {
+            return contactRepository.findByEmail(newContact.getEmail());
+        }
+        return null;
     }
 }
